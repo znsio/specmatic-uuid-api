@@ -5,10 +5,9 @@ using Testcontainers.PostgreSql;
 
 namespace specmatic_uuid_api_test.contract
 {
-    public class ContractTest : IAsyncLifetime
+    public class ContractTest : IAsyncLifetime, IClassFixture<PostgresTestContainer>
     {
         private DotNet.Testcontainers.Containers.IContainer? _testContainer;
-        private PostgreSqlContainer _pgContainer;
         private readonly Process _uuidServiceProcess;
 
         private const string ProjectName = "specmatic-uuid-api";
@@ -19,7 +18,6 @@ namespace specmatic_uuid_api_test.contract
 
         public async Task InitializeAsync()
         {
-            await _pgContainer.StartAsync();
             Console.WriteLine($"Database started on port 5432");
             _uuidServiceProcess.Start();
             Console.WriteLine("UUID service started on port 8080");
@@ -27,7 +25,6 @@ namespace specmatic_uuid_api_test.contract
 
         public async Task DisposeAsync()
         {
-            await _pgContainer.DisposeAsync();
             _uuidServiceProcess.Kill();
             if (_testContainer != null) await _testContainer.DisposeAsync();
         }
@@ -44,17 +41,7 @@ namespace specmatic_uuid_api_test.contract
             testDirectory = testDirectoryInfo.FullName;
             apiDirectory = Path.Combine(projectDir.FullName, ProjectName);
 
-            _pgContainer = new PostgreSqlBuilder()
-                .WithImage("postgres:17")
-                .WithDatabase("specmatic_uuid_db")
-                .WithPortBinding(5432)
-                .WithExposedPort(5432)
-                .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(5432))
-                .WithUsername("dotnet")
-                .WithPassword("dotNet1234")
-                .Build();
-
-            _uuidServiceProcess = StartUuidService();
+            _uuidServiceProcess = UuidServiceProcess();
         }
 
         [Fact]
@@ -87,7 +74,7 @@ namespace specmatic_uuid_api_test.contract
             await _testContainer.StartAsync();
         }
 
-        private Process StartUuidService()
+        private Process UuidServiceProcess()
         {
             var appProcess = new Process
             {

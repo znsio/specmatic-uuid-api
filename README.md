@@ -27,3 +27,5 @@ dotnet restore
 dotnet build
 dotnet test
 ```
+
+The test report should appear in "specmatic-uuid-api-test/build/report/specmatic/index.html" 
