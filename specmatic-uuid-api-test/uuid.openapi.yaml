@@ -55,7 +55,7 @@ paths:
           $ref: '#/components/responses/BadRequestResponse'
         '500':
           description: Server Error
-  /uuids/{uuid_type}/{uuid}:
+  /uuid/{uuid_type}/{uuid}:
     get:
       tags:
         - UUID
@@ -143,6 +143,7 @@ components:
           type: string
         email:
           type: string
+          nullable: true
       required:
         - firstName
         - lastName
