@@ -6,6 +6,7 @@ using specmatic_uuid_api.Models;
 using specmatic_uuid_api.Models.Entity;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.WebHost.ConfigureKestrel(options => options.ListenAnyIP(8080));
 
 // Add services to the container.
 builder.Services.AddControllers().AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter())); ;
@@ -31,8 +32,13 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
     };
 });
 
-
 var app = builder.Build();
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await db.Database.EnsureCreatedAsync();
+}
+
 app.UseSwagger();
 app.UseSwaggerUI();
 app.UseHttpsRedirection();
