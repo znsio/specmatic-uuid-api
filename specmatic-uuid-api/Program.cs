@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using specmatic_uuid_api.Data;
 using specmatic_uuid_api.Models;
+using specmatic_uuid_api.Models.Entity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,7 +12,10 @@ builder.Services.AddControllers().AddJsonOptions(options => options.JsonSerializ
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
+    options.UseNpgsql(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        o => o.MapEnum<UuidType>("UuidType")
+    )
 );
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {

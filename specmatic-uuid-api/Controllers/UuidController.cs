@@ -27,7 +27,7 @@ namespace specmatic_uuid_api.Controllers
             await _dbContext.UUIDs.AddAsync(uuid);
             await _dbContext.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetByTypeAndUuid), new { uuid_type = uuid.UuidType, uuid = uuid.Uuid }, uuid.Uuid);
+            return CreatedAtAction(nameof(GetByTypeAndUuid), new { uuid_type = uuid.UuidType, uuid = uuid.Uuid }, uuid);
         }
 
         [HttpGet]
