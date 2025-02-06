@@ -9,6 +9,8 @@ servers:
   - url: http://localhost:5000
 tags:
   - name: UUID
+  - name: WIP
+    description: API still under development
 paths:
   /uuid:
     get:
@@ -55,10 +57,11 @@ paths:
           $ref: '#/components/responses/BadRequestResponse'
         '500':
           description: Server Error
-  /uuids/{uuid_type}/{uuid}:
+  /uuid/{uuid_type}/{uuid}:
     get:
       tags:
         - UUID
+        - WIP
       summary: Get a UUID
       operationId: GetUuid
       description: Get a UUID
@@ -81,6 +84,7 @@ paths:
     patch:
       tags:
         - UUID
+        - WIP
       summary: Update a UUID
       operationId: UpdateUuid
       description: Update a UUID

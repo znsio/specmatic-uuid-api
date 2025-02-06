@@ -15,8 +15,15 @@ docker run --rm \
 
 ### Start the Service
 
-Change directory into `specmatic-uuid-api` project and run the service.
-
 ```shell
 dotnet run
+```
+
+## Running contract tests programmatically with test containers
+
+```shell
+dotnet clean
+dotnet restore
+dotnet build
+dotnet test
 ```

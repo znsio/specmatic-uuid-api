@@ -71,7 +71,7 @@ namespace specmatic_uuid_api_test.contract
 
         private async Task RunContractTests()
         {
-            var localReportDirectory = Path.Combine(apiDirectory, "build", "reports");
+            var localReportDirectory = Path.Combine(testDirectory, "build", "reports");
             Directory.CreateDirectory(localReportDirectory);
 
             _testContainer = new ContainerBuilder()

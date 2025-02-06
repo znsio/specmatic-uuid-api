@@ -49,7 +49,7 @@ namespace specmatic_uuid_api.Controllers
             return Ok(result);
         }
 
-        [HttpGet("{uuid_type}/{uuid}")]
+        // [HttpGet("{uuid_type}/{uuid}")]
         public async Task<IActionResult> GetByTypeAndUuid([FromRoute(Name = "uuid_type")] UuidType uuid_type, [FromRoute] Guid uuid)
         {
             var entity = await _dbContext.UUIDs.FirstOrDefaultAsync(x => x.Uuid == uuid && x.UuidType == uuid_type);
@@ -62,7 +62,7 @@ namespace specmatic_uuid_api.Controllers
             return Ok(entity);
         }
 
-        [HttpPatch("{uuid_type}/{uuid}")]
+        // [HttpPatch("{uuid_type}/{uuid}")]
         public async Task<IActionResult?> UpdateByTypeAndUuid([FromRoute(Name = "uuid_type")] UuidType uuid_type, [FromRoute] Guid uuid, [FromBody] Customer customer)
         {
             var entityResult = await GetByTypeAndUuid(uuid_type, uuid);
