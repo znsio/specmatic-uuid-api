@@ -28,8 +28,6 @@ namespace specmatic_uuid_api_test.contract
         public async Task DisposeAsync()
         {
             await _pgContainer.DisposeAsync();
-            await _uuidServiceProcess.WaitForExitAsync();
-            _uuidServiceProcess.Dispose();
             _uuidServiceProcess.Kill();
             if (_testContainer != null) await _testContainer.DisposeAsync();
         }
@@ -86,7 +84,7 @@ namespace specmatic_uuid_api_test.contract
                 .WithBindMount($"{testDirectory}/uuid.openapi.yaml", $"{TestContainerDirectory}/uuid.openapi.yaml")
                 .Build();
 
-            await _testContainer.StartAsync().ConfigureAwait(true);
+            await _testContainer.StartAsync();
         }
 
         private Process StartUuidService()

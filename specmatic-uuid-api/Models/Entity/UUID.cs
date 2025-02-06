@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace specmatic_uuid_api.Models.Entity
 {
@@ -18,6 +19,7 @@ namespace specmatic_uuid_api.Models.Entity
         public required string LastName { get; set; }
 
         [Column("email")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? Email { get; set; }
 
         [Column("uuid_type")]
