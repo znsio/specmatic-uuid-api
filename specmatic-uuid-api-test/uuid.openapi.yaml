@@ -157,7 +157,6 @@ components:
             - uuidType
     Uuid:
       type: string
-      maxLength: 32
     UuidResponse:
       allOf:
         - $ref: '#/components/schemas/UuidRequest'

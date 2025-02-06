@@ -14,7 +14,6 @@ namespace specmatic_uuid_api.Models
         public required string LastName { get; set; }
 
         [JsonPropertyName("email")]
-        [EmailAddress(ErrorMessage = "Invalid email format.")]
         public string? Email { get; set; }
     }
 }

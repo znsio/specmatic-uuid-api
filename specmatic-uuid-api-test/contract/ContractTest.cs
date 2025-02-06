@@ -78,7 +78,7 @@ namespace specmatic_uuid_api_test.contract
 
             _testContainer = new ContainerBuilder()
                 .WithImage("znsio/specmatic")
-                .WithCommand("test").WithCommand("--port=8080").WithCommand("--host=host.testcontainers.internal")
+                .WithCommand("test").WithCommand("--port=8080").WithCommand("--host=host.docker.internal")
                 .WithOutputConsumer(Consume.RedirectStdoutAndStderrToConsole())
                 .WithWaitStrategy(Wait.ForUnixContainer().UntilMessageIsLogged("Tests run:"))
                 .WithBindMount(localReportDirectory, $"{TestContainerDirectory}/build/reports")
