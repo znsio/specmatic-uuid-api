@@ -1,24 +1,32 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using DotNet.Testcontainers.Builders;
-using Testcontainers.PostgreSql;
+using DotNet.Testcontainers.Containers;
 
 namespace specmatic_uuid_api_test.contract
 {
     public class ContractTest : IAsyncLifetime, IClassFixture<PostgresTestContainer>
     {
-        private DotNet.Testcontainers.Containers.IContainer? _testContainer;
+        private IContainer? _specmaticTestContainer;
         private readonly Process _uuidServiceProcess;
-
         private const string ProjectName = "specmatic-uuid-api";
         private const string TestContainerDirectory = "/usr/src/app";
         private readonly string apiDirectory;
         private readonly string testDirectory;
 
+        [Fact]
+        public async Task ContractTestsAsync()
+        {
+            await RunContractTests();
+            Assert.NotNull(_specmaticTestContainer);
+            var logs = await _specmaticTestContainer.GetLogsAsync();
+            if (!logs.Stdout.Contains("Failures: 0"))
+            {
+                Assert.Fail("There are failing tests, please refer to build/reports/specmatic/html/index.html for more details");
+            }
+        }
 
         public async Task InitializeAsync()
         {
-            Console.WriteLine($"Database started on port 5432");
             _uuidServiceProcess.Start();
             Console.WriteLine("UUID service started on port 8080");
         }
@@ -26,7 +34,7 @@ namespace specmatic_uuid_api_test.contract
         public async Task DisposeAsync()
         {
             _uuidServiceProcess.Kill();
-            if (_testContainer != null) await _testContainer.DisposeAsync();
+            if (_specmaticTestContainer != null) await _specmaticTestContainer.DisposeAsync();
         }
 
         public ContractTest()
@@ -44,24 +52,12 @@ namespace specmatic_uuid_api_test.contract
             _uuidServiceProcess = UuidServiceProcess();
         }
 
-        [Fact]
-        public async Task ContractTestsAsync()
-        {
-            await RunContractTests();
-            Assert.NotNull(_testContainer);
-            var logs = await _testContainer.GetLogsAsync();
-            if (!logs.Stdout.Contains("Failures: 0"))
-            {
-                Assert.Fail("There are failing tests, please refer to build/reports/specmatic/html/index.html for more details");
-            }
-        }
-
         private async Task RunContractTests()
         {
             var localReportDirectory = Path.Combine(testDirectory, "build", "reports");
             Directory.CreateDirectory(localReportDirectory);
 
-            _testContainer = new ContainerBuilder()
+            _specmaticTestContainer = new ContainerBuilder()
                 .WithImage("znsio/specmatic")
                 .WithCommand("test").WithCommand("--port=8080").WithCommand("--host=host.docker.internal")
                 .WithOutputConsumer(Consume.RedirectStdoutAndStderrToConsole())
@@ -71,7 +67,7 @@ namespace specmatic_uuid_api_test.contract
                 .WithBindMount($"{testDirectory}/uuid.openapi.yaml", $"{TestContainerDirectory}/uuid.openapi.yaml")
                 .Build();
 
-            await _testContainer.StartAsync();
+            await _specmaticTestContainer.StartAsync();
         }
 
         private Process UuidServiceProcess()
