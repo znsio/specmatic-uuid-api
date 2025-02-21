@@ -1,6 +1,14 @@
 ﻿using System.Diagnostics;
+using System.Text;
+using System.Text.Json;
 using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Containers;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
+using specmatic_uuid_api;
+using specmatic_uuid_api.Models;
+using specmatic_uuid_api.Models.Entity;
 
 namespace specmatic_uuid_api_test.contract
 {
@@ -11,6 +19,7 @@ namespace specmatic_uuid_api_test.contract
         private const string ProjectName = "specmatic-uuid-api";
         private const string TestContainerDirectory = "/usr/src/app";
         private readonly string apiDirectory;
+        private static IHost _host;
         private readonly string testDirectory;
 
         [Fact]
@@ -27,14 +36,18 @@ namespace specmatic_uuid_api_test.contract
 
         public async Task InitializeAsync()
         {
-            _uuidServiceProcess.Start();
+            _host = Program.BuildApp();
+            _ = _host.RunAsync();
+            await Task.Delay(50000); 
             Console.WriteLine("UUID service started on port 8080");
         }
 
+
         public async Task DisposeAsync()
         {
-            _uuidServiceProcess.Kill();
+            await _host.StopAsync();
             if (_specmaticTestContainer != null) await _specmaticTestContainer.DisposeAsync();
+            _host?.Dispose();
         }
 
         public ContractTest()
@@ -48,8 +61,6 @@ namespace specmatic_uuid_api_test.contract
             var projectDir = testDirectoryInfo.Parent ?? throw new InvalidOperationException("Unable to get project directory");
             testDirectory = testDirectoryInfo.FullName;
             apiDirectory = Path.Combine(projectDir.FullName, ProjectName);
-
-            _uuidServiceProcess = UuidServiceProcess();
         }
 
         private async Task RunContractTests()
@@ -68,24 +79,6 @@ namespace specmatic_uuid_api_test.contract
                 .Build();
 
             await _specmaticTestContainer.StartAsync();
-        }
-
-        private Process UuidServiceProcess()
-        {
-            var appProcess = new Process
-            {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = "dotnet",
-                    Arguments = $"run --project {apiDirectory}/{ProjectName}.csproj",
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                }
-            };
-
-            return appProcess;
         }
     }
 }
