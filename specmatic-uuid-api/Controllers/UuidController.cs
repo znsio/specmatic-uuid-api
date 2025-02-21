@@ -7,7 +7,7 @@ using specmatic_uuid_api.Models.Entity;
 
 namespace specmatic_uuid_api.Controllers
 {
-    [Route("/uuid")]
+    [Route("uuid")]
     [ApiController]
     public class UuidController(AppDbContext dbContext) : ControllerBase
     {
