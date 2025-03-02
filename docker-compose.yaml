@@ -1,0 +1,42 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      - POSTGRES_DB=specmatic_uuid_db
+      - POSTGRES_USER=dotnet
+      - POSTGRES_PASSWORD=dotNet1234
+    ports:
+      - "5432:5432"
+    tmpfs:
+      - /var/lib/postgresql/data:rw,noexec,nosuid,size=1G
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dotnet -d specmatic_uuid_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=specmatic_uuid_db;Username=dotnet;Password=dotNet1234
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  contract-tests:
+    image: znsio/specmatic
+    volumes:
+      - ./specmatic-uuid-api-test/build/reports:/usr/src/app/build/reports
+      - ./specmatic-uuid-api-test/specmatic.yaml:/usr/src/app/specmatic.yaml
+      - ./specmatic-uuid-api-test/uuid.openapi.yaml:/usr/src/app/uuid.openapi.yaml
+    command: ["test", "--port=8080", "--host=api"]
+    depends_on:
+      - api
+    profiles: ["test"]

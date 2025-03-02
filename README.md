@@ -29,3 +29,9 @@ dotnet test
 ```
 
 The test report should appear in "specmatic-uuid-api-test/build/report/specmatic/index.html" 
+
+## Running the application, postgres and contract tests via Docker Compose
+
+```shell
+docker compose --profile test up --abort-on-container-exit
+```
