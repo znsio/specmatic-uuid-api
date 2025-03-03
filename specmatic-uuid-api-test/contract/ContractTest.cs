@@ -1,17 +1,25 @@
-﻿using System.Diagnostics;
-using DotNet.Testcontainers.Builders;
+﻿using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Containers;
 
 namespace specmatic_uuid_api_test.contract
 {
-    public class ContractTest : IAsyncLifetime, IClassFixture<PostgresTestContainer>
+    public class ContractTest : IAsyncLifetime, IClassFixture<PostgresTestContainer>,IClassFixture<WebApplicationFactoryFixture<Program>>
     {
         private IContainer? _specmaticTestContainer;
-        private readonly Process _uuidServiceProcess;
-        private const string ProjectName = "specmatic-uuid-api";
-        private const string TestContainerDirectory = "/usr/src/app";
-        private readonly string apiDirectory;
         private readonly string testDirectory;
+        private readonly WebApplicationFactoryFixture<Program> _factory;
+
+        public ContractTest()
+        {
+            var currentDirectory = Directory.GetCurrentDirectory();
+            var testDirectoryInfo = Directory.GetParent(currentDirectory);
+            _factory = new WebApplicationFactoryFixture<Program>();
+            while (!File.Exists(Path.Combine(testDirectoryInfo.FullName, "specmatic.yaml")))
+            {
+                testDirectoryInfo = testDirectoryInfo.Parent;
+            }
+            testDirectory = testDirectoryInfo.FullName;
+        }
 
         [Fact]
         public async Task ContractTestsAsync()
@@ -25,31 +33,17 @@ namespace specmatic_uuid_api_test.contract
             }
         }
 
-        public async Task InitializeAsync()
+        public Task InitializeAsync()
         {
-            _uuidServiceProcess.Start();
-            Console.WriteLine("UUID service started on port 8080");
+            _factory.CreateDefaultClient();
+            Console.WriteLine($"UUID service started");
+            return Task.CompletedTask;
         }
 
         public async Task DisposeAsync()
         {
-            _uuidServiceProcess.Kill();
-            if (_specmaticTestContainer != null) await _specmaticTestContainer.DisposeAsync();
-        }
-
-        public ContractTest()
-        {
-            var currentDirectory = Directory.GetCurrentDirectory();
-            var testDirectoryInfo = Directory.GetParent(currentDirectory);
-            while (!File.Exists(Path.Combine(testDirectoryInfo.FullName, "specmatic.yaml")))
-            {
-                testDirectoryInfo = testDirectoryInfo.Parent;
-            }
-            var projectDir = testDirectoryInfo.Parent ?? throw new InvalidOperationException("Unable to get project directory");
-            testDirectory = testDirectoryInfo.FullName;
-            apiDirectory = Path.Combine(projectDir.FullName, ProjectName);
-
-            _uuidServiceProcess = UuidServiceProcess();
+            if (_specmaticTestContainer != null)
+                await _specmaticTestContainer.DisposeAsync();
         }
 
         private async Task RunContractTests()
@@ -59,33 +53,17 @@ namespace specmatic_uuid_api_test.contract
 
             _specmaticTestContainer = new ContainerBuilder()
                 .WithImage("znsio/specmatic")
-                .WithCommand("test").WithCommand("--port=8080").WithCommand("--host=host.docker.internal")
+                .WithCommand("test")
+                .WithCommand($"--port=8080")
+                .WithCommand($"--host=host.docker.internal") // Use the test server address
                 .WithOutputConsumer(Consume.RedirectStdoutAndStderrToConsole())
                 .WithWaitStrategy(Wait.ForUnixContainer().UntilMessageIsLogged("Tests run:"))
-                .WithBindMount(localReportDirectory, $"{TestContainerDirectory}/build/reports")
-                .WithBindMount($"{testDirectory}/specmatic.yaml", $"{TestContainerDirectory}/specmatic.yaml")
-                .WithBindMount($"{testDirectory}/uuid.openapi.yaml", $"{TestContainerDirectory}/uuid.openapi.yaml")
+                .WithBindMount(localReportDirectory, "/usr/src/app/build/reports")
+                .WithBindMount($"{testDirectory}/specmatic.yaml", "/usr/src/app/specmatic.yaml")
+                .WithBindMount($"{testDirectory}/uuid.openapi.yaml", "/usr/src/app/uuid.openapi.yaml")
                 .Build();
 
             await _specmaticTestContainer.StartAsync();
-        }
-
-        private Process UuidServiceProcess()
-        {
-            var appProcess = new Process
-            {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = "dotnet",
-                    Arguments = $"run --project {apiDirectory}/{ProjectName}.csproj",
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                }
-            };
-
-            return appProcess;
         }
     }
 }

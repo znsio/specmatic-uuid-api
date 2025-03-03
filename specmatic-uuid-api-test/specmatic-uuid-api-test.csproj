@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
+    <PackageReference Include="Kralizek.AutoFixture.Extensions.AspNetCore.WebApplicationFactory" Version="2.1.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="Testcontainers" Version="4.1.0" />
     <PackageReference Include="Testcontainers.PostgreSql" Version="3.9.0" />
@@ -25,6 +26,15 @@
 
   <ItemGroup>
     <ProjectReference Include="..\specmatic-uuid-api\specmatic-uuid-api.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="uuid.openapi_examples\uuid_POST_201_1.json" />
+    <None Remove="uuid.openapi_examples\uuid_Regular_CXDQL_GET_200_3.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="uuid.openapi_examples\" />
   </ItemGroup>
 
 </Project>
